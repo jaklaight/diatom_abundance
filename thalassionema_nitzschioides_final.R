@@ -768,7 +768,7 @@ thalassionema_nitzschioides_regression_predictions_bootstrap <- c()
 for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
   # Get the current bootstrap sample
   bootstrap_sample <- 
-    thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[bootstraps$splits[[i]]$in_id, ]
+    thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$in_id, ]
   
   # Make predictions on the bootstrap sample
   classification_predictions <- predict(thalassionema_nitzschioides_classification_fit, bootstrap_sample)
@@ -786,7 +786,7 @@ for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
 thalassionema_nitzschioides_hurdle_predictions_bootstrap <- c()
 
 # Iterate over each bootstrap sample
-for (i in 1:length(bootstraps$id)) {
+for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
   # Get the classification and regression predictions for the current bootstrap sample
   classification_predictions <- thalassionema_nitzschioides_classification_predictions_bootstrap[[i]]
   regression_predictions <- thalassionema_nitzschioides_regression_predictions_bootstrap[[i]]
@@ -807,10 +807,10 @@ thalassionema_nitzschioides_hurdle_predictions_bootstrap
 
 rsq_boot <- c()
 
-for (i in 1:length(bootstraps$id)) {
+for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
   rsq_boot[i] <- cor(
     thalassionema_nitzschioides_hurdle_predictions_bootstrap[[i]], 
-    thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[bootstraps$splits[[i]]$in_id, 7])^2 
+    thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$in_id, 7])^2 
 }
 
 paste0(
@@ -827,11 +827,11 @@ paste0(
 
 mae_boot <- c()
 
-for (i in 1:length(bootstraps$id)) {
+for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
   mae_boot[i] <- 
     mean(
       abs(
-        thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[bootstraps$splits[[i]]$in_id, 7] -
+        thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$in_id, 7] -
           thalassionema_nitzschioides_hurdle_predictions_bootstrap[[i]]
         )
       )
@@ -851,11 +851,11 @@ paste0(
 
 rmse_boot <- c()
 
-for (i in 1:length(bootstraps$id)) {
+for (i in 1:length(thalassionema_nitzschioides_metrics_bootstrap$id)) {
   rmse_boot[i] <- 
     sqrt(
       mean(
-        (thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[bootstraps$splits[[i]]$in_id, 7] -
+        (thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$data[thalassionema_nitzschioides_metrics_bootstrap$splits[[i]]$in_id, 7] -
           thalassionema_nitzschioides_hurdle_predictions_bootstrap[[i]])^2
       )
     )
