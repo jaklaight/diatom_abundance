@@ -46,8 +46,8 @@ set.seed(234)
 thalassionema_nitzschioides_classification_folds <- 
   vfold_cv(
     thalassionema_nitzschioides_train_classification,
-    v = 10, 
-    repeats = 5, 
+    v = 5, 
+    repeats = 2, 
     strata = abundance_factor
     )
 
@@ -112,11 +112,10 @@ ann_classification_hidden_layers_spec <-
 
 ann_classification_spec <-
   mlp(
-#   hidden_units = best_number, 
+    hidden_units = 10, 
     activation = "relu",
     dropout = tune(),
     epochs = tune(),
-    stop_iter = tune(),
     learn_rate = tune(),
   ) |>
   set_engine("brulee") |>
@@ -186,7 +185,7 @@ show_best(rf_classification_tuning, "accuracy")
 rf_classification_tuned_spec <- 
   rand_forest(
     mtry = 2,
-    min_n = 31,
+    min_n = 35,
     trees = 2000,
   ) |> 
   set_engine("ranger",
@@ -228,12 +227,12 @@ xgb_classification_tuned_spec <-
   boost_tree(
     trees = 2000,
     tree_depth = 12, 
-    mtry = 4, 
-    learn_rate = 0.0784, 
-    min_n = 11, 
-    loss_reduction = 0.00000000259, 
-    sample_size = 0.845, 
-    stop_iter = 12
+    mtry = 5, 
+    learn_rate = 0.003, 
+    min_n = 15, 
+    loss_reduction = 0.00001, 
+    sample_size = 0.5, 
+    stop_iter = 5
   ) |> 
   set_engine("xgboost") |>
   set_mode("classification")
@@ -262,11 +261,12 @@ autoplot(ann_classification_hidden_layers_tuning) +
 
 show_best(ann_classification_hidden_layers_tuning, "roc_auc")
 show_best(ann_classification_hidden_layers_tuning, "accuracy")
+# choose best value of hidden_units and go back to model specs
+
 
 ann_classification_grid <- grid_latin_hypercube(   
   dropout(),
   epochs(),
-  stop_iter(),
   learn_rate(),
   size = 30
   )
@@ -291,11 +291,10 @@ show_best(ann_classification_tuning, "accuracy")
 
 ann_classification_tuned_spec <- 
   mlp(
-    hidden_units = 5, 
-    dropout = 1,
-    epochs = 1,
-    stop_iter = 1,
-    learn_rate = 1,
+    hidden_units = 10, 
+    dropout = 0.3,
+    epochs = 1000,
+    learn_rate = 0.1,
     activation = "relu"
   ) |>
   set_engine("brulee") |>
@@ -324,15 +323,14 @@ knn_classification_tuning
 autoplot(knn_classification_tuning) +
   theme_bw()
 
-
 show_best(knn_classification_tuning, "roc_auc")
 show_best(knn_classification_tuning, "accuracy")
 
 knn_classification_tuned_spec <- 
   nearest_neighbor(
-    neighbors = 9, 
+    neighbors = 10, 
     weight_func = "gaussian", 
-    dist_power = 1.1
+    dist_power = 1.5
   ) |>
   set_engine("kknn") |>
   set_mode("classification")
@@ -392,8 +390,6 @@ thalassionema_nitzschioides_classification_fit <-
     thalassionema_nitzschioides_train_classification
   )
 
-collect_metrics(thalassionema_nitzschioides_classification_fit)
-
 thalassionema_nitzschioides_classification_last_fit <- 
   last_fit(
     thalassionema_nitzschioides_classification_fit,
@@ -446,8 +442,8 @@ set.seed(234)
 thalassionema_nitzschioides_regression_folds <- 
   vfold_cv(
     thalassionema_nitzschioides_train_regression,
-    v = 10, 
-    repeats = 5, 
+    v = 5, 
+    repeats = 2, 
     strata = log_abundance
   )
 
@@ -512,11 +508,10 @@ ann_regression_hidden_layers_spec <-
 
 ann_regression_spec <-
   mlp(
-#   hidden_units = best_number, 
+    hidden_units = 10, 
     activation = "relu",
     dropout = tune(),
     epochs = tune(),
-    stop_iter = tune(),
     learn_rate = tune(),
   ) |>
   set_engine("brulee") |>
@@ -585,8 +580,8 @@ show_best(rf_regression_tuning, "rmse")
 
 rf_regression_tuned_spec <- 
   rand_forest(
-    mtry = 2,
-    min_n = 14,
+    mtry = 3,
+    min_n = 12,
     trees = 2000
   ) |> 
   set_engine("ranger",
@@ -621,19 +616,19 @@ xgb_regression_tuning
 autoplot(xgb_regression_tuning) +
   theme_bw()
 
-show_best(xgb_regression_tuning, "rsq")
+show_best(xgb_regression_tuning, "rsq") 
 show_best(xgb_regression_tuning, "rmse")
 
 xgb_regression_tuned_spec <- 
   boost_tree(
-    tree_depth = 14, 
+    tree_depth = 13, 
     trees = 2000, 
-    mtry = 4,
-    learn_rate = 0.00426, 
-    min_n = 14, 
-    loss_reduction = 0.0000000117, 
-    sample_size = 0.436, 
-    stop_iter = 17
+    mtry = 5,
+    learn_rate = 0.01, 
+    min_n = 40, 
+    loss_reduction = 0.01, 
+    sample_size = 0.5, 
+    stop_iter = 15
   ) |> 
   set_engine("xgboost") |>
   set_mode("regression")
@@ -662,11 +657,11 @@ autoplot(ann_regression_hidden_layers_tuning) +
 
 show_best(ann_regression_hidden_layers_tuning, "rsq")
 show_best(ann_regression_hidden_layers_tuning, "rmse")
+# choose best value of hidden_units and go back to model specs
 
 ann_regression_grid <- grid_latin_hypercube(   
   dropout(),
   epochs(),
-  stop_iter(),
   learn_rate(),
   size = 30
   )
@@ -692,10 +687,9 @@ show_best(ann_regression_tuning, "rmse")
 ann_regression_tuned_spec <- 
   mlp(
     hidden_units = 10, 
-    dropout = 1,
-    penalty = 5.69e-7, 
-    epochs = 452, 
-    learn_rate = 0.0160, 
+    dropout = 0.75,
+    epochs = 1000, 
+    learn_rate = 0.045, 
     activation = "relu"
   ) |>
   set_engine("brulee") |>
@@ -790,8 +784,6 @@ thalassionema_nitzschioides_regression_fit <-
     thalassionema_nitzschioides_regression_final_wf,
     thalassionema_nitzschioides_train_regression
   )
-
-collect_metrics(thalassionema_nitzschioides_regression_fit)
 
 thalassionema_nitzschioides_regression_last_fit <- 
   last_fit(
@@ -955,7 +947,8 @@ paste0(
 
 # classification vip:
 
-thalassionema_nitzschioides_classification_fit |>  
+thalassionema_nitzschioides_classification_vip <-
+  thalassionema_nitzschioides_classification_fit |>  
   extract_fit_parsnip() |> 
   vip(geom = "point") + 
   labs(title = "Variable importance") +
@@ -963,7 +956,7 @@ thalassionema_nitzschioides_classification_fit |>
 
 # classification pdp:
 
-thalassionema_nitzschioides_classification_vip_temp <-
+thalassionema_nitzschioides_classification_pdp_temp <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -973,7 +966,7 @@ thalassionema_nitzschioides_classification_vip_temp <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_no3 <-
+thalassionema_nitzschioides_classification_pdp_no3 <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -983,7 +976,7 @@ thalassionema_nitzschioides_classification_vip_no3 <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_dfe <-
+thalassionema_nitzschioides_classification_pdp_dfe <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -993,7 +986,7 @@ thalassionema_nitzschioides_classification_vip_dfe <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_par <-
+thalassionema_nitzschioides_classification_pdp_par <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1003,7 +996,7 @@ thalassionema_nitzschioides_classification_vip_par <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_p_s <-
+thalassionema_nitzschioides_classification_pdp_p_s <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1013,7 +1006,7 @@ thalassionema_nitzschioides_classification_vip_p_s <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_si_s <-
+thalassionema_nitzschioides_classification_pdp_si_s <-
   thalassionema_nitzschioides_classification_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1023,16 +1016,17 @@ thalassionema_nitzschioides_classification_vip_si_s <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_classification_vip_temp +
-  thalassionema_nitzschioides_classification_vip_no3 +
-  thalassionema_nitzschioides_classification_vip_dfe +
-  thalassionema_nitzschioides_classification_vip_par +
-  thalassionema_nitzschioides_classification_vip_p_s +
-  thalassionema_nitzschioides_classification_vip_si_s
+thalassionema_nitzschioides_classification_pdp_temp +
+  thalassionema_nitzschioides_classification_pdp_no3 +
+  thalassionema_nitzschioides_classification_pdp_dfe +
+  thalassionema_nitzschioides_classification_pdp_par +
+  thalassionema_nitzschioides_classification_pdp_p_s +
+  thalassionema_nitzschioides_classification_pdp_si_s
 
 # regression vip:
 
-thalassionema_nitzschioides_regression_fit |>  
+thalassionema_nitzschioides_regression_vip <-
+  thalassionema_nitzschioides_regression_fit |>  
   extract_fit_parsnip() |> 
   vip(geom = "point") +
   labs(title = "Variable importance") +
@@ -1040,7 +1034,7 @@ thalassionema_nitzschioides_regression_fit |>
 
 # regression pdp:
 
-thalassionema_nitzschioides_regression_vip_temp <-
+thalassionema_nitzschioides_regression_pdp_temp <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1050,7 +1044,7 @@ thalassionema_nitzschioides_regression_vip_temp <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_no3 <-
+thalassionema_nitzschioides_regression_pdp_no3 <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1060,7 +1054,7 @@ thalassionema_nitzschioides_regression_vip_no3 <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_dfe <-
+thalassionema_nitzschioides_regression_pdp_dfe <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1070,7 +1064,7 @@ thalassionema_nitzschioides_regression_vip_dfe <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_par <-
+thalassionema_nitzschioides_regression_pdp_par <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1080,7 +1074,7 @@ thalassionema_nitzschioides_regression_vip_par <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_p_s <-
+thalassionema_nitzschioides_regression_pdp_p_s <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1090,7 +1084,7 @@ thalassionema_nitzschioides_regression_vip_p_s <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_si_s <-
+thalassionema_nitzschioides_regression_pdp_si_s <-
   thalassionema_nitzschioides_regression_fit |> 
   extract_fit_parsnip() |> 
   partial(
@@ -1100,11 +1094,11 @@ thalassionema_nitzschioides_regression_vip_si_s <-
   autoplot() +
   theme_bw()
 
-thalassionema_nitzschioides_regression_vip_temp +
-  thalassionema_nitzschioides_regression_vip_no3 +
-  thalassionema_nitzschioides_regression_vip_dfe +
-  thalassionema_nitzschioides_regression_vip_par +
-  thalassionema_nitzschioides_regression_vip_p_s +
-  thalassionema_nitzschioides_regression_vip_si_s
+thalassionema_nitzschioides_regression_pdp_temp +
+  thalassionema_nitzschioides_regression_pdp_no3 +
+  thalassionema_nitzschioides_regression_pdp_dfe +
+  thalassionema_nitzschioides_regression_pdp_par +
+  thalassionema_nitzschioides_regression_pdp_p_s +
+  thalassionema_nitzschioides_regression_pdp_si_s
 
 ### End
